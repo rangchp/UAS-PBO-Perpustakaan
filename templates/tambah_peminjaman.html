@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Peminjaman - Pustaka Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { amber: { 50: '#fdf2f2', 100: '#f9dada', 700: '#800000', 800: '#660000', 900: '#4a0404' } } } } };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="sidebar w-64 fixed h-full text-white flex flex-col shadow-xl z-20">
+        <div class="p-6 border-b border-white/10 flex items-center space-x-3">
+            <i class="fas fa-book-open logo-mark"></i>
+            <span class="serif text-2xl font-bold tracking-wider">PUSTAKA</span>
+        </div>
+
+        <nav class="flex-1 mt-6 px-4 space-y-2">
+            <a href="{{url_for('auth.dashboard')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-chart-line w-8"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{url_for('auth.buku')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-book w-8"></i>
+                <span>Data Buku</span>
+            </a>
+            <a href="{{url_for('auth.anggota')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-users w-8"></i>
+                <span>Data Anggota</span>
+            </a>
+            <a href="{{url_for('auth.peminjaman')}}" class="nav-item active flex items-center p-3 rounded-xl">
+                <i class="fas fa-exchange-alt w-8"></i>
+                <span>Data Peminjaman</span>
+            </a>
+            <div class="pt-4 pb-2 text-xs font-semibold uppercase text-gray-500 px-3 tracking-widest">Laporan</div>
+            <a href="{{url_for('auth.laporan')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-file-invoice w-8"></i>
+                <span>Denda & Sanksi</span>
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/10">
+            <a href="{{ url_for('auth.logout') }}" class="flex items-center text-red-400 hover:text-red-300 transition-colors">
+                <i class="fas fa-sign-out-alt w-8"></i>
+                <span>Keluar</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 ml-64">
+        <header class="bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center px-10">
+            <a href="{{ url_for('auth.peminjaman') }}" class="mr-4 text-gray-400 hover:text-amber-900 transition-colors">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <h1 class="serif text-2xl text-gray-800">Tambah Transaksi Peminjaman</h1>
+        </header>
+
+        <div class="p-10 max-w-3xl">
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-amber-900 p-6 text-white">
+                    <p class="text-sm opacity-80 uppercase tracking-widest font-semibold">Formulir Transaksi</p>
+                    <h2 class="serif text-xl">Catat Peminjaman Buku</h2>
+                </div>
+
+                <form action="{{ url_for('auth.ctambah_peminjaman') }}" method="POST" class="p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wider">Anggota</label>
+                            {% if session.role == 'Admin' %}
+                            <select name="id_anggota" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-amber-700 outline-none text-gray-700 bg-gray-50 focus:bg-white cursor-pointer" required>
+                                <option value="" disabled selected>Pilih Anggota</option>
+                                {% for agg in daftar_anggota %}
+                                <option value="{{ agg.id_anggota }}">{{ agg.nama_lengkap }}</option>
+                                {% endfor %}
+                            </select>
+                            {% else %}
+                            <select name="id_anggota" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none text-gray-700 bg-gray-100 cursor-not-allowed" disabled>
+                                {% for agg in daftar_anggota %}
+                                <option value="{{ agg.id_anggota }}" selected>{{ agg.nama_lengkap }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="hidden" name="id_anggota" value="{{ session.user_id }}">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wider">Buku</label>
+                            <select name="id_buku" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-amber-700 outline-none text-gray-700 bg-gray-50 focus:bg-white cursor-pointer" required>
+                                <option value="" disabled selected>Pilih Buku</option>
+                                {% for b in daftar_buku %}
+                                <option value="{{ b.id_buku }}">{{ b.judul_buku }} (Stok: {{ b.stok }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wider">Tanggal Pinjam</label>
+                        <input type="date" name="tanggal_pinjam" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-amber-700 outline-none text-gray-700 bg-gray-50 focus:bg-white" required>
+                        <p class="text-xs text-gray-400 mt-2">Buku wajib dikembalikan maksimal 7 hari setelah tanggal pinjam.</p>
+                    </div>
+
+                    <div class="w-full md:w-1/2">
+                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wider">Status</label>
+                        <select name="status" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-amber-700 outline-none text-gray-700 bg-gray-50 focus:bg-white cursor-pointer">
+                            <option value="Dipinjam">Dipinjam</option>
+                            <option value="Dikembalikan">Dikembalikan</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-6 border-t flex space-x-4">
+                        <a href="{{ url_for('auth.peminjaman') }}" class="flex-1 py-4 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all uppercase tracking-widest text-center text-xs">
+                            Batalkan
+                        </a>
+                        <button type="submit" class="flex-1 py-4 rounded-xl font-bold bg-amber-900 text-white hover:bg-amber-800 transition-all shadow-lg shadow-amber-900/20 uppercase tracking-widest text-xs">
+                            Simpan Transaksi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

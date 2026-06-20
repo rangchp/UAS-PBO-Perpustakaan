@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PUSTAKA Perpustakaan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { amber: { 50: '#fdf2f2', 100: '#f9dada', 700: '#800000', 800: '#660000', 900: '#4a0404' } } } } };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="min-h-screen flex">
+
+    <div class="bookshelf-decor hidden lg:flex w-1/2 flex-col justify-between p-12 text-white">
+        <div class="flex items-center space-x-3">
+            <i class="fas fa-book-open logo-mark logo-mark-lg"></i>
+            <span class="serif text-3xl font-bold tracking-wider">PUSTAKA</span>
+        </div>
+        <div>
+            <h1 class="serif text-4xl font-bold leading-tight mb-4">Selamat Datang Kembali</h1>
+            <p class="text-white/80 text-lg font-light">Sistem Informasi Manajemen Perpustakaan. Kelola koleksi, anggota, dan peminjaman dalam satu tempat.</p>
+        </div>
+        <p class="text-white/50 text-sm">&copy; 2026 PUSTAKA Perpustakaan</p>
+    </div>
+
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+        <div class="w-full max-w-md">
+            <div class="lg:hidden flex items-center justify-center space-x-3 mb-8">
+                <i class="fas fa-book-open logo-mark logo-mark-lg"></i>
+                <span class="serif text-3xl font-bold tracking-wider text-amber-400">PUSTAKA</span>
+            </div>
+
+            <h2 class="serif text-3xl font-bold text-gray-800 mb-2">Masuk ke Akun</h2>
+            <p class="text-gray-500 mb-8">Silakan masukkan email dan password Anda.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-5">
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wider">Email</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-amber-400"></i>
+                        <input type="email" name="identifier" class="input-library w-full pl-11 pr-4 py-3 rounded-xl bg-white text-gray-700" placeholder="nama@email.com" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase mb-2 block tracking-wider">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-amber-400"></i>
+                        <input type="password" name="password" class="input-library w-full pl-11 pr-4 py-3 rounded-xl bg-white text-gray-700" placeholder="Minimal 6 karakter" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-library w-full py-3 rounded-xl font-bold uppercase tracking-widest text-sm shadow-lg shadow-amber-900/20">
+                    Masuk
+                </button>
+            </form>
+
+            <p class="text-center text-gray-500 text-sm mt-8">
+                Belum punya akun?
+                <a href="{{ url_for('auth.register_page') }}" class="text-red-400 font-bold hover:underline">Daftar di sini</a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

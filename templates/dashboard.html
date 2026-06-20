@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pustaka Dashboard - Admin Perpustakaan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { amber: { 50: '#fdf2f2', 100: '#f9dada', 700: '#800000', 800: '#660000', 900: '#4a0404' } } } } };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="sidebar w-64 fixed h-full text-white flex flex-col shadow-xl z-20">
+        <div class="p-6 border-b border-white/10 flex items-center space-x-3">
+            <i class="fas fa-book-open logo-mark"></i>
+            <span class="serif text-2xl font-bold tracking-wider">PUSTAKA</span>
+        </div>
+
+        <nav class="flex-1 mt-6 px-4 space-y-2">
+            <a href="{{url_for('auth.dashboard')}}" class="nav-item active flex items-center p-3 rounded-xl">
+                <i class="fas fa-chart-line w-8"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{url_for('auth.buku')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-book w-8"></i>
+                <span>Data Buku</span>
+            </a>
+            <a href="{{url_for('auth.anggota')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-users w-8"></i>
+                <span>Data Anggota</span>
+            </a>
+            <a href="{{url_for('auth.peminjaman')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-exchange-alt w-8"></i>
+                <span>Data Peminjaman</span>
+            </a>
+            <div class="pt-4 pb-2 text-xs font-semibold uppercase text-gray-500 px-3 tracking-widest">Laporan</div>
+            <a href="{{url_for('auth.laporan')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-file-invoice w-8"></i>
+                <span>Denda & Sanksi</span>
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/10">
+            <a href="/logout" class="flex items-center text-red-400 hover:text-red-300 transition-colors">
+                <i class="fas fa-sign-out-alt w-8"></i>
+                <span>Keluar</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 ml-64">
+        <header class="bg-white shadow-sm p-4 sticky top-0 z-10 flex justify-between items-center px-10">
+            <div class="flex items-center space-x-4">
+                <h1 class="serif text-2xl text-gray-800">Dashboard</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-gray-800">{{ session['nama'] if session['nama'] else 'Admin Perpustakaan' }}</p>
+                    <p class="text-xs text-gray-500">{{ session['role'] if session['role'] else 'Petugas' }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-800 font-bold">
+                    {{ session['nama'][0] if session['nama'] else 'A' }}
+                </div>
+            </div>
+        </header>
+
+        <div class="p-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                <div class="bg-white p-6 rounded-2xl shadow-sm stat-card flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold uppercase">Total Koleksi Buku</p>
+                        <h3 class="text-3xl font-bold text-gray-800">{{ total_buku }}</h3>
+                        <p class="text-xs text-gray-500 mt-1">judul buku terdaftar</p>
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-xl text-amber-700">
+                        <i class="fas fa-book text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm stat-card flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold uppercase">Total Anggota</p>
+                        <h3 class="text-3xl font-bold text-gray-800">{{ total_anggota }}</h3>
+                        <p class="text-xs text-gray-500 mt-1">anggota terdaftar</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl text-blue-700">
+                        <i class="fas fa-user-check text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm stat-card flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold uppercase">Sedang Dipinjam</p>
+                        <h3 class="text-3xl font-bold text-gray-800">{{ total_dipinjam }}</h3>
+                        <p class="text-xs text-gray-500 mt-1">buku belum dikembalikan</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-xl text-orange-700">
+                        <i class="fas fa-clock text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b flex justify-between items-center">
+                    <h2 class="serif text-xl font-bold text-gray-800">Peminjaman Terbaru</h2>
+                    <a href="{{ url_for('auth.peminjaman') }}" class="text-amber-700 text-sm font-bold hover:underline">Lihat Semua</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-wider">
+                                <th class="px-6 py-4">Anggota</th>
+                                <th class="px-6 py-4">Judul Buku</th>
+                                <th class="px-6 py-4">Tanggal Pinjam</th>
+                                <th class="px-6 py-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                        {% for p in peminjaman_terbaru %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+                                    <span class="font-medium text-gray-700">{{ p.nama_lengkap }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ p.judul_buku }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ p.tanggal_pinjam }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold {% if p.status == 'Dikembalikan' %}bg-green-100 text-green-700{% else %}bg-orange-100 text-orange-700{% endif %}">{{ p.status }}</span>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-10 text-center text-gray-500">
+                                    <i class="fas fa-exchange-alt text-4xl mb-3 block opacity-20"></i>
+                                    Belum ada data peminjaman.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Buku - Pustaka Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { amber: { 50: '#fdf2f2', 100: '#f9dada', 700: '#800000', 800: '#660000', 900: '#4a0404' } } } } };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="sidebar w-64 fixed h-full text-white flex flex-col shadow-xl z-20">
+        <div class="p-6 border-b border-white/10 flex items-center space-x-3">
+            <i class="fas fa-book-open logo-mark"></i>
+            <span class="serif text-2xl font-bold tracking-wider">PUSTAKA</span>
+        </div>
+
+        <nav class="flex-1 mt-6 px-4 space-y-2">
+            <a href="{{url_for('auth.dashboard')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-chart-line w-8"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{url_for('auth.buku')}}" class="nav-item active flex items-center p-3 rounded-xl">
+                <i class="fas fa-book w-8"></i>
+                <span>Data Buku</span>
+            </a>
+            <a href="{{url_for('auth.anggota')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-users w-8"></i>
+                <span>Data Anggota</span>
+            </a>
+            <a href="{{url_for('auth.peminjaman')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-exchange-alt w-8"></i>
+                <span>Data Peminjaman</span>
+            </a>
+            <div class="pt-4 pb-2 text-xs font-semibold uppercase text-gray-500 px-3 tracking-widest">Laporan</div>
+            <a href="{{url_for('auth.laporan')}}" class="nav-item flex items-center p-3 rounded-xl">
+                <i class="fas fa-file-invoice w-8"></i>
+                <span>Denda & Sanksi</span>
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/10">
+            <a href="{{ url_for('auth.logout') }}" class="flex items-center text-red-400 hover:text-red-300 transition-colors">
+                <i class="fas fa-sign-out-alt w-8"></i>
+                <span>Keluar</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 ml-64">
+        <header class="bg-white shadow-sm p-4 sticky top-0 z-10 flex justify-between items-center px-10">
+            <h1 class="serif text-2xl text-gray-800">Manajemen Data Buku</h1>
+            <div class="flex items-center space-x-4">
+            {% if session.role == 'Admin' %}
+            <a href="{{url_for('auth.tambah_buku')}}" class="bg-amber-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-800 transition-all flex items-center">
+                <i class="fas fa-plus mr-2"></i> Tambah Buku Baru
+            </a>
+            {% endif %}
+        </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="mx-10 mt-4 px-4 py-3 rounded-xl text-sm font-semibold {% if category == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="p-10">
+
+            <form method="GET" action="{{ url_for('auth.buku') }}" class="bg-white p-4 rounded-t-2xl shadow-sm border-b flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="relative w-full md:w-96">
+                    <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="text" name="cari" value="{{ cari }}" placeholder="Cari judul, penulis, atau penerbit..." class="w-full pl-12 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-amber-700 outline-none text-sm">
+                </div>
+                <div class="flex space-x-2">
+                    <select name="kategori" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-amber-700">
+                        <option value="">Semua Kategori</option>
+                        {% for kat in daftar_kategori %}
+                        <option value="{{ kat.id_kategori }}" {% if kategori == kat.id_kategori|string %}selected{% endif %}>{{ kat.nama_kategori }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-amber-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-800 transition-all">
+                        <i class="fas fa-search mr-1"></i> Cari
+                    </button>
+                </div>
+            </form>
+
+            <div class="bg-white rounded-b-2xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-wider">
+                                <th class="px-6 py-4">ID</th>
+                                <th class="px-6 py-4">Informasi Buku</th>
+                                <th class="px-6 py-4">Kategori</th>
+                                <th class="px-6 py-4">Tahun</th>
+                                <th class="px-6 py-4 text-center">Stok</th>
+                                <th class="px-6 py-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                        {% for buku in daftar_buku %}
+
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ buku.id_buku }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="font-semibold text-gray-800">{{ buku.judul_buku }}</div>
+                                    <div class="text-xs text-gray-500">{{buku.penulis}} | {{buku.penerbit}}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800">
+                                        {{ buku.nama_kategori if buku.nama_kategori else '-' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{buku.tahun_terbit}}</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="font-bold {{ buku.warna_stok }}">{{ buku.stok }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {% if session.role == 'Admin' %}
+                                    <div class="flex justify-center space-x-2">
+                                        <a href="{{ url_for('auth.edit_buku', id_buku=buku.id_buku) }}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ url_for('auth.hapus_buku', id_buku=buku.id_buku) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku ini?')">
+                                            <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-gray-300">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                    <i class="fas fa-book-open text-4xl mb-3 block opacity-20"></i>
+                                    Belum ada data buku tersedia.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-4 border-t flex justify-between items-center text-sm text-gray-500">
+                    <span>Menampilkan  data</span>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50">Prev</button>
+                        <button class="px-3 py-1 bg-amber-900 text-white rounded">1</button>
+                        <button class="px-3 py-1 border rounded hover:bg-gray-50">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
