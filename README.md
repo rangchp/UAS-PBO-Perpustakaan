@@ -1,6 +1,6 @@
 # UAS PBO - Sistem Informasi Perpustakaan
 
-**Kelas:** 2PTI51
+**Kelas:** 2PTI51 - TIB04
 
 ## Anggota Kelompok
 
